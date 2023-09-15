@@ -10,25 +10,29 @@ ThemeData appTheme = ThemeData(
   primaryColor: const Color.fromARGB(255, 92, 1, 31),
   textTheme: const TextTheme(
     displayLarge: TextStyle(
-        fontSize: 70,
+        fontSize: 60,
         fontWeight: FontWeight.bold,
         color: Color.fromARGB(255, 92, 1, 31),
         fontFamily: 'bonbon'),
+    displayMedium: TextStyle(
+        fontSize: 26,
+        color: Color.fromARGB(255, 246, 221, 166),
+        fontFamily: 'HouseScript'),
     bodyLarge: TextStyle(
         fontSize: 18,
         color: Color.fromARGB(255, 92, 1, 31),
         fontFamily: 'bonbon'),
     titleMedium: TextStyle(
-        fontSize: 32,
+        fontSize: 26,
         color: Color.fromARGB(255, 92, 1, 31),
         fontFamily: 'bonbon'),
     headlineSmall: TextStyle(
-      fontSize: 30,
+      fontSize: 24,
       color: Color.fromARGB(255, 92, 1, 31),
       fontFamily: 'HouseScript',
     ),
     bodyMedium: TextStyle(
-      fontSize: 18,
+      fontSize: 14,
       color: Color.fromARGB(255, 92, 1, 31),
     ),
   ),

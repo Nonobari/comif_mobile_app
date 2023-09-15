@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // Nothing is displaying on screen initially, since the items are loaded from API on startup.
+    // Nothing is displaying on screen initially, since the items are loaded from api_mobile on startup.
     // Preferably in this state, the refresh indicator would be shown while the items load.
     // It's not currently possible in this place, since it seems that the Widget hasn't been built yet.
 
@@ -37,11 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<String?> getBestConsos() async {
     _refreshIndicatorKey.currentState?.show();
     return Future.delayed(const Duration(milliseconds: 2250)).then((_) async {
-      var url = Uri.http('localhost:3000', '/comif/api/get_best_consos.php',
-          {'home_token': home_token});
+      var url = Uri.http('portail.comif.fr',
+          '/comif/api_mobile/get_best_consos.php', {'home_token': home_token});
       var response = await http.get(url);
       final body = response.body;
       final json = convert.jsonDecode(body);
+      (json.toString());
       setState(() {
         if (json['best_consos'].length == 0) {
           noms = [];
@@ -51,9 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
           for (var i = 0; i < 10; i++) {
             noms.add(json['best_consos'][i]['nom_personne'].toString());
             prenoms.add(json['best_consos'][i]['prenom_personne'].toString());
-            totalConsos.add((json['best_consos'][i]['total_annee'])
-                .toString()
-                .padLeft(2, '0'));
+            totalConsos.add(
+                (double.parse(json['best_consos'][i]['montant']) / 100)
+                    .toString()
+                    .padLeft(2, '0'));
           }
         }
         exitcode = json['exitcode'];
@@ -89,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
         key: _refreshIndicatorKey,
         onRefresh: () async {
           debugPrint('Refreshing...');
-          getBestConsos();
+          await getBestConsos();
         },
         child: GestureDetector(
             onPanUpdate: (details) {
@@ -132,8 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           children: [
                             SizedBox(
-                              width: 100,
-                              height: 100,
+                              width: 64,
+                              height: 64,
                               child: Image.asset('assets/logo_comif.png'),
                             ),
                             const SizedBox(
@@ -164,25 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(
                     width: 30,
-                  ),
-                  const Text(
-                    'Bienvenue à la ',
-                    style: TextStyle(
-                        fontSize: 28,
-                        color: Color.fromARGB(255, 92, 1, 31),
-                        fontWeight: FontWeight.w300,
-                        fontFamily: 'bonbon'),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  const Text(
-                    'Comif',
-                    style: TextStyle(
-                        fontSize: 54,
-                        color: Color.fromARGB(255, 92, 1, 31),
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'bonbon'),
                   ),
                   const Padding(
                     padding: EdgeInsets.only(
@@ -230,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ListView.builder(
                         padding: const EdgeInsets.only(
                             bottom: kBottomNavigationBarHeight + 16),
-                        itemCount: noms.length,
+                        itemCount: 10,
                         itemBuilder: (BuildContext context, int index) {
                           if (noms.isNotEmpty) {
                             return Padding(
@@ -260,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   color: Colors.black),
                                             ),
                                             const SizedBox(
-                                              width: 50,
+                                              width: 20,
                                             ),
                                             SizedBox(
                                               width: 50,
@@ -268,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               child: ClipOval(
                                                 child: FadeInImage.assetNetwork(
                                                   image:
-                                                      'http://localhost:3000/comif/img/pdp_cotisants/${noms[index]}_${prenoms[index]}.png',
+                                                      'http://portail.comif.fr/comif/img/pdp_cotisants/${noms[index]}_${prenoms[index]}.png',
                                                   placeholder:
                                                       'assets/logo_comif.png',
                                                   fit: BoxFit.cover,

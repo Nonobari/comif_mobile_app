@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'package:comif_app/menu.dart';
-import 'package:crypto/crypto.dart';
 import 'package:comif_app/profile.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_login/flutter_login.dart';
 import 'package:http/http.dart' as http;
 import 'home.dart';
 import 'token.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   Duration get loginTime => const Duration(milliseconds: 2250);
@@ -26,21 +25,61 @@ class _LoginScreenState extends State<LoginScreen> {
     ]);
   }
 
+  @override
+  Widget build(BuildContext context) {
+    void onItemTapped(int index) {
+      switch (index) {
+        case 0:
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const MenuScreen()));
+          break;
+        case 1:
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()));
+          break;
+      }
+    }
+
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: const Text('Login'),
+        centerTitle: true,
+      ),
+      floatingActionButton: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Menu'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+        ],
+        currentIndex: 2,
+        onTap: (value) => onItemTapped(value),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: const LoginFrame(),
+    );
+  }
+}
+
+class LoginFrame extends StatefulWidget {
+  const LoginFrame({Key? key}) : super(key: key);
+  @override
+  State<LoginFrame> createState() => _LoginFrame();
+}
+
+class _LoginFrame extends State<LoginFrame> {
   int exitcode = 0;
   String message = '';
   String email = '';
+  bool isLoggingIn = false;
   Map<String, dynamic> userData = {};
   Token token = Token(exp: 0, iat: 0, token: '');
   Duration get loginTime => const Duration(milliseconds: 2250);
-  Future<String?> _authUser(LoginData data) {
-    debugPrint('Name: ${data.name}, Password: ${data.password}');
+  Future<String?> _authUser(String data) {
     return Future.delayed(loginTime).then((_) async {
-      var passwordBytes = convert.utf8.encode(data.password);
-      String passwordHash = sha256.convert(passwordBytes).toString();
-      var url = Uri.http('localhost:3000', '/comif/api/login.php',
-          {'email': data.name, 'pwd': passwordHash});
+      var url = Uri.http(
+          'portail.comif.fr', '/comif/api_mobile/login.php', {'email': data});
       try {
-        debugPrint('requet: $url');
         var response = await http.get(url).catchError((e) {
           debugPrint('Error: $e');
           throw Exception('Request failed');
@@ -50,11 +89,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final body = response.body;
         final json = convert.jsonDecode(body);
-        debugPrint('Response: $json');
         setState(() {
           exitcode = json['exitcode'];
           message = json['message'];
-          email = data.name;
+          email = data;
           debugPrint('message: $message');
           if (exitcode == 200) {
             debugPrint('Login success');
@@ -63,7 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 iat: json['token']['iat'],
                 token: json['token']['id'].toString());
             userData = json['data'];
-            debugPrint('token: $token');
           }
         });
         debugPrint('Fetch user complete');
@@ -84,89 +121,175 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<String> _recoverPassword(String name) {
-    debugPrint('Name: $name');
-    return Future.delayed(loginTime).then((_) {
-      //if (!users.containsKey(name)) {
-      //return 'User not exists';
-      //}
-      return '';
+  @override
+  void initState() {
+    super.initState();
+    loadSavedCredentials();
+  }
+
+  TextEditingController txtController = TextEditingController();
+  bool rememberMe = false;
+
+  void loadSavedCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      txtController.text = prefs.getString('email') ?? '';
+      rememberMe = prefs.containsKey('email');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    void onItemTapped(int index) {
-      switch (index) {
-        case 0:
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const MenuScreen()));
-          break;
-        case 1:
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()));
-          break;
-      }
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        centerTitle: true,
-      ),
-      floatingActionButton: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
-        currentIndex: 2,
-        onTap: (value) => onItemTapped(value),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      body: FlutterLogin(
-        logo: "assets/logo_comif.png",
-        loginAfterSignUp: false,
-        userType: LoginUserType.email,
-        messages: LoginMessages(
-          flushbarTitleError: 'Erreur',
-          loginButton: 'Se connecter',
-          signupButton: 'S\'inscrire',
-          goBackButton: 'Retour',
-          confirmPasswordError: 'Les mots de passe ne correspondent pas',
-          recoverPasswordDescription:
-              'Un lien de récupération sera envoyé à votre adresse email',
-          recoverPasswordIntro: 'Entrez votre email',
-          recoverPasswordSuccess: 'Mot de passe récupéré avec succès',
-        ),
-        theme: LoginTheme(
-          // change backgroundColor to lightTheme
-          primaryColor: Theme.of(context).colorScheme.secondary,
-          titleStyle: Theme.of(context).textTheme.displayLarge,
-          textFieldStyle: Theme.of(context).textTheme.bodyMedium,
-          bodyStyle: Theme.of(context).textTheme.bodyMedium,
-          buttonTheme: const LoginButtonTheme(
-            splashColor: Color.fromARGB(255, 0, 0, 0),
-            backgroundColor: Color.fromARGB(255, 92, 1, 31),
-            highlightColor: Color.fromARGB(255, 92, 1, 31),
-            elevation: 9.0,
-            highlightElevation: 6.0,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 120,
+            height: 120,
+            child: Image.asset('assets/logo_comif.png'),
           ),
-        ),
-        title: 'Comif',
-        onLogin: _authUser,
-        savedEmail: email,
-        hideForgotPasswordButton: true,
-        onSubmitAnimationCompleted: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TransactionScreen(
-                    userData: userData, email: email, token: token),
-              ));
-        },
-        onRecoverPassword: _recoverPassword,
+          const SizedBox(height: 10),
+          Text("Comif", style: Theme.of(context).textTheme.displayLarge),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.only(left: 50.0, right: 50),
+            child: Container(
+                decoration: BoxDecoration(
+                    border: Border.all(
+                        color: Theme.of(context).primaryColor, width: 2),
+                    color: Theme.of(context).colorScheme.secondary,
+                    borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: txtController,
+                        style: Theme.of(context).textTheme.labelLarge,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          prefixIcon: const Icon(Icons.email),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                          labelText: 'Email',
+                          labelStyle: TextStyle(fontSize: 20),
+                          hintText: 'prenom.nom@etu.emse.fr',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: <Widget>[
+                          Checkbox(
+                            checkColor: Theme.of(context).colorScheme.primary,
+                            value: rememberMe,
+                            onChanged: (value) {
+                              setState(() {
+                                rememberMe = value!;
+                                debugPrint(rememberMe.toString());
+                              });
+                            },
+                          ),
+                          Text('Remember Me'),
+                        ],
+                      ),
+                      TextButton(
+                          onPressed: () => {
+                                // Inside the onPressed handler of the "Login" button
+                                FocusScope.of(context).unfocus(),
+                                debugPrint(txtController.text),
+                                debugPrint(exitcode.toString()),
+                                setState(() {
+                                  isLoggingIn = true;
+                                }),
+                                _authUser(txtController.text).then((value) {
+                                  debugPrint(value);
+                                  setState(() {
+                                    isLoggingIn = false;
+                                  });
+                                  if (exitcode == 200) {
+                                    // Define a custom page route for a smoother transition
+                                    Navigator.push(
+                                      context,
+                                      PageRouteBuilder(
+                                        pageBuilder:
+                                            (context, animation1, animation2) =>
+                                                TransactionScreen(
+                                          userData: userData,
+                                          email: email,
+                                          token: token,
+                                        ),
+                                        transitionsBuilder: (context,
+                                            animation1, animation2, child) {
+                                          const begin = Offset(1.0, 0.0);
+                                          const end = Offset.zero;
+                                          const curve = Curves.easeInOut;
+                                          var tween =
+                                              Tween(begin: begin, end: end)
+                                                  .chain(
+                                            CurveTween(curve: curve),
+                                          );
+                                          var offsetAnimation =
+                                              animation1.drive(tween);
+                                          return SlideTransition(
+                                            position: offsetAnimation,
+                                            child: child,
+                                          );
+                                        },
+                                      ),
+                                    );
+
+                                    // Save credentials if needed
+                                    saveCredentials();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(message),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                })
+                              },
+                          style: TextButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: isLoggingIn
+                                ? CircularProgressIndicator(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                  ) // Show CircularProgressIndicator while logging in
+                                : Text(
+                                    "Se connecter",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displayMedium,
+                                  ),
+                          ))
+                    ],
+                  ),
+                )),
+          ),
+        ],
       ),
     );
+  }
+
+  void saveCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (rememberMe) {
+      prefs.setString('email', txtController.text);
+    } else {
+      prefs.remove('email');
+    }
   }
 }

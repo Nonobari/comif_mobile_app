@@ -44,7 +44,7 @@ class _MenuScreenState extends State<MenuScreen> {
   void initState() {
     super.initState();
 
-    // Nothing is displaying on screen initially, since the items are loaded from API on startup.
+    // Nothing is displaying on screen initially, since the items are loaded from api_mobile on startup.
     // Preferably in this state, the refresh indicator would be shown while the items load.
     // It's not currently possible in this place, since it seems that the Widget hasn't been built yet.
 
@@ -55,7 +55,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Future fetchMenus() async {
     _refreshIndicatorKey.currentState?.show();
-    var url = Uri.http('localhost:3000', '/comif/api/get_menu.php',
+    var url = Uri.http('portail.comif.fr', '/comif/api_mobile/get_menu.php',
         {'home_token': home_token});
     //debugPrint('Fetching userData Money');
     var response = await http.get(url);
@@ -64,28 +64,31 @@ class _MenuScreenState extends State<MenuScreen> {
     final jsonData = convert.jsonDecode(body);
     debugPrint(jsonData.toString());
     for (var i = 0; i < jsonData['nb_datas']; i++) {
-      if (categoriesGeneral.contains(jsonData['datas'][i]['id_categorie'])) {
+      if (categoriesGeneral
+          .contains(int.parse(jsonData['datas'][i]['id_categorie']))) {
         listGeneral.add(Product(
             name: jsonData['datas'][i]['nom_produit'],
-            idCategorie: jsonData['datas'][i]['id_categorie'],
+            idCategorie: int.parse(jsonData['datas'][i]['id_categorie']),
             categorie: jsonData['datas'][i]['nom_categorie'],
-            price: (jsonData['datas'][i]['prix_produit'] / 100)
+            price: (double.parse(jsonData['datas'][i]['prix_produit']) / 100)
                 .toStringAsFixed(2)));
       }
-      if (categoriesTibbar.contains(jsonData['datas'][i]['id_categorie'])) {
+      if (categoriesTibbar
+          .contains(int.parse(jsonData['datas'][i]['id_categorie']))) {
         listTibbar.add(Product(
             name: jsonData['datas'][i]['nom_produit'],
-            idCategorie: jsonData['datas'][i]['id_categorie'],
+            idCategorie: int.parse(jsonData['datas'][i]['id_categorie']),
             categorie: jsonData['datas'][i]['nom_categorie'],
-            price: (jsonData['datas'][i]['prix_produit'] / 100)
+            price: (double.parse(jsonData['datas'][i]['prix_produit']) / 100)
                 .toStringAsFixed(2)));
       }
-      if (categoriesTitpause.contains(jsonData['datas'][i]['id_categorie'])) {
+      if (categoriesTitpause
+          .contains(int.parse(jsonData['datas'][i]['id_categorie']))) {
         listTitpause.add(Product(
             name: jsonData['datas'][i]['nom_produit'],
-            idCategorie: jsonData['datas'][i]['id_categorie'],
+            idCategorie: int.parse(jsonData['datas'][i]['id_categorie']),
             categorie: jsonData['datas'][i]['nom_categorie'],
-            price: (jsonData['datas'][i]['prix_produit'] / 100)
+            price: (double.parse(jsonData['datas'][i]['prix_produit']) / 100)
                 .toStringAsFixed(2)));
       }
     }
@@ -135,8 +138,8 @@ class _MenuScreenState extends State<MenuScreen> {
               Row(
                 children: [
                   SizedBox(
-                    width: 100,
-                    height: 100,
+                    width: 64,
+                    height: 64,
                     child: Image.asset('assets/logo_comif.png'),
                   ),
                   const SizedBox(
@@ -326,7 +329,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  listGeneral[index].price + '€',
+                                  '${listGeneral[index].price} €',
                                   style: TextStyle(
                                       color: Theme.of(context)
                                           .colorScheme
@@ -348,7 +351,7 @@ class _MenuScreenState extends State<MenuScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            listGeneral[index].price + '€',
+                            '${listGeneral[index].price} €',
                             style: TextStyle(
                                 color: Theme.of(context).colorScheme.secondary),
                           )),
@@ -393,7 +396,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  listTitpause[index].price + '€',
+                                  '${listTitpause[index].price} €',
                                   style: TextStyle(
                                       color: Theme.of(context)
                                           .colorScheme
@@ -415,7 +418,7 @@ class _MenuScreenState extends State<MenuScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            listTitpause[index].price + '€',
+                            '${listTitpause[index].price} €',
                             style: TextStyle(
                                 color: Theme.of(context).colorScheme.secondary),
                           )),
@@ -460,7 +463,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  listTibbar[index].price + '€',
+                                  '${listTibbar[index].price} €',
                                   style: TextStyle(
                                       color: Theme.of(context)
                                           .colorScheme
@@ -482,7 +485,7 @@ class _MenuScreenState extends State<MenuScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            listTibbar[index].price + '€',
+                            '${listTibbar[index].price} €',
                             style: TextStyle(
                                 color: Theme.of(context).colorScheme.secondary),
                           )),

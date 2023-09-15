@@ -55,7 +55,7 @@ class _TransactionState extends State<Transaction> {
 
   Future fetchData(String email) async {
     _refreshIndicatorKey.currentState?.show();
-    var url = Uri.http('localhost:3000', '/comif/api/get_money.php',
+    var url = Uri.http('portail.comif.fr', '/comif/api_mobile/get_money.php',
         {'email': email, 'token': widget.token.token});
     //debugPrint('Fetching userData Money');
     var response = await http.get(url);
@@ -63,23 +63,21 @@ class _TransactionState extends State<Transaction> {
 
     final body = response.body;
     final jsonMoney = convert.jsonDecode(body);
-    var urlCommands = Uri.http('localhost:3000', '/comif/api/get_commands.php',
+    var urlCommands = Uri.http(
+        'portail.comif.fr',
+        '/comif/api_mobile/get_commands.php',
         {'email': email, 'token': widget.token.token});
     var responseCommands = await http.get(urlCommands);
     final bodycommands = responseCommands.body;
     final jsonCommands = convert.jsonDecode(bodycommands);
 
     var urlTransactions = Uri.http(
-        'localhost:3000',
-        '/comif/api/get_transactions.php',
+        'portail.comif.fr',
+        '/comif/api_mobile/get_transactions.php',
         {'email': email, 'token': widget.token.token});
     var responseTransactions = await http.get(urlTransactions);
     final bodyTransactions = responseTransactions.body;
     final jsonTransactions = convert.jsonDecode(bodyTransactions);
-    //debugPrint(jsonMoney.toString());
-    //debugPrint(jsonTransactions.toString());
-    debugPrint(jsonCommands.toString());
-
     List<String> produitTemp = [];
     List<String> quantiteTemp = [];
     List<String> prixTemp = [];
@@ -94,12 +92,13 @@ class _TransactionState extends State<Transaction> {
     List<String> prenomServeurTransacTemp = [];
     List<String> moyenTransacTemp = [];
 
-    for (var i = 1; i < jsonCommands['nb_datas']; i++) {
+    for (var i = 0; i < jsonCommands['nb_datas'] - 1; i++) {
       produitTemp.add(jsonCommands['datas'][i]['nom_produit'].toString());
       quantiteTemp
           .add(jsonCommands['datas'][i]['quantite_commande'].toString());
-      prixTemp.add(((jsonCommands['datas'][i]['prix_produit'] / 100.0))
-          .toStringAsFixed(2));
+      prixTemp.add(
+          ((double.parse(jsonCommands['datas'][i]['prix_produit']) / 100.0))
+              .toStringAsFixed(2));
       dateTemp.add(jsonCommands['datas'][i]['date_commande'].toString());
       nomTerveurTemp.add(jsonCommands['datas'][i]['nom_serveur'].toString());
       prenomTerveurTemp
@@ -108,13 +107,14 @@ class _TransactionState extends State<Transaction> {
       jsonCommands['datas'][i]['quantite_commande'];
     }
 
-    for (var i = 1; i < jsonTransactions['nb_datas']; i++) {
+    for (var i = 0; i < jsonTransactions['nb_datas'] - 1; i++) {
       dateTransacTemp
           .add(jsonTransactions['datas'][i]['date_operation'].toString());
       moyenTransacTemp
           .add(jsonTransactions['datas'][i]['moyen_de_paiement'].toString());
       montantTransacTemp.add(
-          ((jsonTransactions['datas'][i]['montant_transaction'] / 100.0))
+          ((double.parse(jsonTransactions['datas'][i]['montant_transaction']) /
+                  100.0))
               .toStringAsFixed(2));
       nomServeurTransacTemp
           .add(jsonTransactions['datas'][i]['nom_serveur'].toString());
@@ -125,7 +125,7 @@ class _TransactionState extends State<Transaction> {
     setState(() {
       exitcode = jsonMoney['exitcode'];
       message = jsonMoney['message'];
-      amount = jsonMoney['amount'];
+      amount = int.parse(jsonMoney['amount']);
       // separer les transactions en liste
       produit = produitTemp;
       quantite = quantiteTemp;
@@ -158,7 +158,7 @@ class _TransactionState extends State<Transaction> {
             key: _refreshIndicatorKey,
             onRefresh: () async {
               debugPrint('Refreshing...');
-              fetchData(widget.email);
+              await fetchData(widget.email);
             },
             child: Column(
               children: [
@@ -167,8 +167,8 @@ class _TransactionState extends State<Transaction> {
                   child: Row(
                     children: [
                       SizedBox(
-                        width: 100,
-                        height: 100,
+                        width: 64,
+                        height: 64,
                         child: Image.asset('assets/logo_comif.png'),
                       ),
                       const SizedBox(
@@ -198,25 +198,6 @@ class _TransactionState extends State<Transaction> {
                 ),
                 const SizedBox(
                   width: 30,
-                ),
-                const Text(
-                  'Bienvenue à la ',
-                  style: TextStyle(
-                      fontSize: 28,
-                      color: Color.fromARGB(255, 92, 1, 31),
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'bonbon'),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                const Text(
-                  'Comif',
-                  style: TextStyle(
-                      fontSize: 54,
-                      color: Color.fromARGB(255, 92, 1, 31),
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'bonbon'),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(
@@ -290,12 +271,12 @@ class _TransactionState extends State<Transaction> {
                                   '${quantite[index]} ${produit[index]}',
                                   style: const TextStyle(
                                       fontFamily: 'San Fransisco',
-                                      fontSize: 20,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black),
                                 ),
                                 Text(
-                                  'Prix unitaire : ${prix[index]}€',
+                                  '${(double.parse(prix[index]) * double.parse(quantite[index])).toStringAsFixed(2)}€',
                                   style: const TextStyle(
                                       fontFamily: 'San Fransisco',
                                       fontWeight: FontWeight.bold,
@@ -312,22 +293,11 @@ class _TransactionState extends State<Transaction> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Servi par : ${nomServeur[index]} ${prenomServeur[index]}',
-                                      style:
-                                          const TextStyle(color: Colors.black),
-                                    ),
-                                    Text(
-                                      date[index],
-                                      style:
-                                          const TextStyle(color: Colors.black),
+                                      '${nomServeur[index]} ${prenomServeur[index]}\ndate: ${date[index]}',
+                                      style: const TextStyle(
+                                          color: Colors.black, fontSize: 14),
                                     ),
                                   ],
-                                ),
-                                Text(
-                                  'Total : ${(double.parse(prix[index]) * double.parse(quantite[index])).toStringAsFixed(2)}€',
-                                  style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -368,6 +338,14 @@ class _TransactionState extends State<Transaction> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
+                                  moyenTransac[index],
+                                  style: const TextStyle(
+                                      fontFamily: 'San Fransisco',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.black),
+                                ),
+                                Text(
                                   '${montantTransac[index]}€',
                                   style: const TextStyle(
                                       fontFamily: 'San Fransisco',
@@ -375,26 +353,15 @@ class _TransactionState extends State<Transaction> {
                                       fontSize: 20,
                                       color: Colors.black),
                                 ),
-                                Text(
-                                  moyenTransac[index],
-                                  style: const TextStyle(
-                                      fontFamily: 'San Fransisco',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                      color: Colors.black),
-                                )
                               ],
                             ),
                             subtitle: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Effectué par : ${nomServeurTransac[index]} ${prenomServeurTransac[index]}',
-                                  style: const TextStyle(color: Colors.black),
-                                ),
-                                Text(
-                                  'date : ${dateTransac[index]}',
-                                  style: const TextStyle(color: Colors.black),
+                                  'Effectué par : ${nomServeurTransac[index]} ${prenomServeurTransac[index]}\ndate: ${dateTransac[index]}',
+                                  style: const TextStyle(
+                                      color: Colors.black, fontSize: 14),
                                 ),
                               ],
                             ),

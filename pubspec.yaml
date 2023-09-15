@@ -13,6 +13,7 @@ dependencies:
   http: ^1.1.0
   crypto: ^3.0.3
   flutter_launcher_icons: ^0.13.1
+  shared_preferences: ^2.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -31,21 +32,8 @@ flutter:
       - assets/logo_comif.png
   uses-material-design: true
 
-flutter_launcher_icons:
-  android: "launcher_icon"
+flutter_icons:
+  android: true
   ios: true
-  image_path: "assets/logo_comif.png"
-  min_sdk_android: 21 # android min sdk min:16, default 21
-  web:
-    generate: true
-    image_path: "assets/logo_comif.png"
-    background_color: "#000000"
-    theme_color: "#000000"
-  windows:
-    generate: true
-    image_path: "assets/logo_comif.png"
-    icon_size: 48 # min:48, max:256, default: 48
-  macos:
-    generate: true
-    image_path: "assets/logo_comif.png"
-
+  image_path_ios: "assets/logo_comif.png"  # Path to your iOS app icon
+  image_path_android: "assets/logo_comif.png"  # Path to your Android app icon
