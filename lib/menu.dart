@@ -54,16 +54,8 @@ class _MenuScreenState extends State<MenuScreen> {
     fetchMenus();
   }
 
-  Future fetchMenus() async {
-    _refreshIndicatorKey.currentState?.show();
-    var url = Uri.http('portail.comif.fr', '/comif/api_mobile/get_menu.php',
-        {'home_token': home_token});
-    //debugPrint('Fetching userData Money');
-    var response = await http.get(url);
-
-    final body = response.body;
-    final jsonData = convert.jsonDecode(body);
-    debugPrint(jsonData.toString());
+  void processData(dynamic jsonData) {
+    // simplify fetchMenus by making all the processing functions in this function
     for (var i = 0; i < jsonData['nb_datas']; i++) {
       if (categoriesGeneral
           .contains(int.parse(jsonData['datas'][i]['id_categorie']))) {
@@ -98,6 +90,60 @@ class _MenuScreenState extends State<MenuScreen> {
       listTibbar = listTibbar;
       listTitpause = listTitpause;
     });
+  }
+
+  bool isCacheStale(SharedPreferences prefs) {
+    final String lastCacheUpdateKey = 'last_cache_update';
+
+    // Retrieve the timestamp of the last cache update
+    final lastUpdateTimestamp = prefs.getInt(lastCacheUpdateKey);
+    debugPrint('lastUpdateTimestamp: $lastUpdateTimestamp');
+    if (lastUpdateTimestamp == null) {
+      // If there's no previous cache update timestamp, consider the cache as stale
+      return true;
+    }
+
+    // Calculate the current timestamp
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+
+    // Define the time threshold (e.g.,  24 h)
+    final cacheThreshold = 86400000; // 24h hour in milliseconds
+
+    // Compare the time difference between the current time and the last update time with the threshold
+    return (currentTime - lastUpdateTimestamp) > cacheThreshold;
+  }
+
+  Future fetchMenus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String cachedDataKey = 'cached_menu_data';
+    final String lastCacheUpdateKey = 'last_cache_update';
+
+    if (!prefs.containsKey(cachedDataKey) || isCacheStale(prefs)) {
+      // Cache is empty or stale, make the HTTP request
+      debugPrint('making request');
+      var url = Uri.http('portail.comif.fr', '/comif/api_mobile/get_menu.php',
+          {'home_token': home_token});
+      var response = await http.get(url);
+
+      final body = response.body;
+      final jsonData = convert.jsonDecode(body);
+
+      // Save the new data to cache
+      prefs.setString(cachedDataKey, body);
+
+      // Update the last cache update timestamp
+      final currentTime = DateTime.now().millisecondsSinceEpoch;
+      prefs.setInt(lastCacheUpdateKey, currentTime);
+
+      processData(jsonData);
+    } else {
+      // Use the cached data
+      debugPrint('using cache');
+      final cachedData = prefs.getString(cachedDataKey);
+      final jsonData = convert.jsonDecode(cachedData!);
+
+      processData(jsonData);
+    }
   }
 
   @override

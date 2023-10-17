@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'login.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'menu.dart';
@@ -165,31 +166,52 @@ class _TransactionState extends State<Transaction> {
                 Padding(
                   padding: const EdgeInsets.only(left: 20, top: 12),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(
-                        width: 64,
-                        height: 64,
-                        child: Image.asset('assets/logo_comif.png'),
-                      ),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Bonjour',
-                            style: TextStyle(
-                                fontSize: 32,
-                                color: Color.fromARGB(255, 92, 1, 31),
-                                fontFamily: 'bonbon'),
+                          SizedBox(
+                            width: 64,
+                            height: 64,
+                            child: Image.asset('assets/logo_comif.png'),
                           ),
-                          Text(
-                            '${widget.userData['prenom_personne']} ${widget.userData['nom_personne']}',
-                            style: const TextStyle(
-                                fontSize: 24,
-                                color: Colors.black,
-                                fontWeight: FontWeight.w200),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Bonjour',
+                                style: TextStyle(
+                                    fontSize: 32,
+                                    color: Color.fromARGB(255, 92, 1, 31),
+                                    fontFamily: 'bonbon'),
+                              ),
+                              Text(
+                                '${widget.userData['prenom_personne']} ${widget.userData['nom_personne']}',
+                                style: const TextStyle(
+                                    fontSize: 24,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w200),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          TextButton(
+                              child: const Icon(Icons.logout),
+                              onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return const LoginScreen();
+                                }));
+                              }),
+                          const SizedBox(
+                            width: 20,
                           ),
                         ],
                       ),

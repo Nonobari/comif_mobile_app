@@ -175,7 +175,7 @@ class _LoginFrame extends State<LoginFrame> {
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30)),
                           labelText: 'Email',
-                          labelStyle: TextStyle(fontSize: 20),
+                          labelStyle: const TextStyle(fontSize: 20),
                           hintText: 'prenom.nom@etu.emse.fr',
                         ),
                       ),
@@ -192,7 +192,7 @@ class _LoginFrame extends State<LoginFrame> {
                               });
                             },
                           ),
-                          Text('Remember Me'),
+                          const Text('Rester conecté'),
                         ],
                       ),
                       TextButton(
