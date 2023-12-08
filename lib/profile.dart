@@ -58,13 +58,11 @@ class _TransactionState extends State<Transaction> {
     _refreshIndicatorKey.currentState?.show();
     var url = Uri.http('portail.comif.fr', '/comif/api_mobile/get_money.php',
         {'email': email, 'token': widget.token.token});
-    //debugPrint('Fetching userData Money');
     var response = await http.get(url);
-    //debugPrint('Fetching userData Money Completed');
 
     final body = response.body;
     final jsonMoney = convert.jsonDecode(body);
-    var urlCommands = Uri.http(
+    var urlCommands = Uri.https(
         'portail.comif.fr',
         '/comif/api_mobile/get_commands.php',
         {'email': email, 'token': widget.token.token});
@@ -72,13 +70,14 @@ class _TransactionState extends State<Transaction> {
     final bodycommands = responseCommands.body;
     final jsonCommands = convert.jsonDecode(bodycommands);
 
-    var urlTransactions = Uri.http(
+    var urlTransactions = Uri.https(
         'portail.comif.fr',
         '/comif/api_mobile/get_transactions.php',
         {'email': email, 'token': widget.token.token});
     var responseTransactions = await http.get(urlTransactions);
     final bodyTransactions = responseTransactions.body;
     final jsonTransactions = convert.jsonDecode(bodyTransactions);
+    debugPrint(jsonTransactions.toString());
     List<String> produitTemp = [];
     List<String> quantiteTemp = [];
     List<String> prixTemp = [];
@@ -141,9 +140,6 @@ class _TransactionState extends State<Transaction> {
       prenomServeurTransac = prenomServeurTransacTemp;
       moyenTransac = moyenTransacTemp;
     });
-    debugPrint('Fetch userData Money complete');
-    debugPrint(email);
-    debugPrint('Fetch userData Commands complete');
     if (exitcode == 200) {
       return null;
     } else {
@@ -158,7 +154,6 @@ class _TransactionState extends State<Transaction> {
         : RefreshIndicator(
             key: _refreshIndicatorKey,
             onRefresh: () async {
-              debugPrint('Refreshing...');
               await fetchData(widget.email);
             },
             child: Column(
@@ -202,6 +197,7 @@ class _TransactionState extends State<Transaction> {
                       ),
                       Row(
                         children: [
+                          Text('Date de fin de cotisation : ${widget.userData['date_fin_cotisation']}'),
                           TextButton(
                               child: const Icon(Icons.logout),
                               onPressed: () {

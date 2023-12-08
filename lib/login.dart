@@ -77,11 +77,10 @@ class _LoginFrame extends State<LoginFrame> {
   Duration get loginTime => const Duration(milliseconds: 2250);
   Future<String?> _authUser(String data) {
     return Future.delayed(loginTime).then((_) async {
-      var url = Uri.http(
+      var url = Uri.https(
           'portail.comif.fr', '/comif/api_mobile/login.php', {'email': data});
       try {
         var response = await http.get(url).catchError((e) {
-          debugPrint('Error: $e');
           throw Exception('Request failed');
         }).timeout(const Duration(seconds: 5), onTimeout: () {
           throw TimeoutException('Request timeout');
@@ -93,9 +92,7 @@ class _LoginFrame extends State<LoginFrame> {
           exitcode = json['exitcode'];
           message = json['message'];
           email = data;
-          debugPrint('message: $message');
           if (exitcode == 200) {
-            debugPrint('Login success');
             token = Token(
                 exp: json['token']['exp'],
                 iat: json['token']['iat'],
@@ -103,7 +100,6 @@ class _LoginFrame extends State<LoginFrame> {
             userData = json['data'];
           }
         });
-        debugPrint('Fetch user complete');
         if (exitcode == 500) {
           return 'Accès refusé, erreur interne';
         } else if (exitcode == 402) {
@@ -112,10 +108,8 @@ class _LoginFrame extends State<LoginFrame> {
           return 'Aucun email correspondant';
         }
       } on TimeoutException catch (e) {
-        debugPrint('Timeout: $e');
         return 'Délai de connexion dépassé';
       } on Exception catch (e) {
-        debugPrint('Exception: $e');
         return 'Connexion perdue';
       }
     });
@@ -188,7 +182,6 @@ class _LoginFrame extends State<LoginFrame> {
                             onChanged: (value) {
                               setState(() {
                                 rememberMe = value!;
-                                debugPrint(rememberMe.toString());
                               });
                             },
                           ),
@@ -199,13 +192,10 @@ class _LoginFrame extends State<LoginFrame> {
                           onPressed: () => {
                                 // Inside the onPressed handler of the "Login" button
                                 FocusScope.of(context).unfocus(),
-                                debugPrint(txtController.text),
-                                debugPrint(exitcode.toString()),
                                 setState(() {
                                   isLoggingIn = true;
                                 }),
                                 _authUser(txtController.text).then((value) {
-                                  debugPrint(value);
                                   setState(() {
                                     isLoggingIn = false;
                                   });

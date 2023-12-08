@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<String?> getBestConsos() async {
     _refreshIndicatorKey.currentState?.show();
     return Future.delayed(const Duration(milliseconds: 2250)).then((_) async {
-      var url = Uri.http('portail.comif.fr',
+      var url = Uri.https('portail.comif.fr',
           '/comif/api_mobile/get_best_consos.php', {'home_token': home_token});
       var response = await http.get(url);
       final body = response.body;

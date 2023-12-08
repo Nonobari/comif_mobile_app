@@ -14,23 +14,29 @@ dependencies:
   crypto: ^3.0.3
   flutter_launcher_icons: ^0.13.1
   shared_preferences: ^2.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
 
 flutter:
+  uses-material-design: true
   fonts:
-    - family: Bonbon
+    - family: bonbon
       fonts:
-      - asset:  assets/FontsFree-Net-bonbon-regular.ttf
+        - asset: assets/FontsFree-Net-bonbon-regular.ttf
       
     - family: HouseScript
       fonts:
-      - asset:  assets/SignPainter-HouseScript.ttf
+        - asset: assets/SignPainter-HouseScript.ttf
+
   assets:
-      - assets/logo_comif.png
-  uses-material-design: true
+    - assets/logo_comif.png
+    - assets/FontsFree-Net-bonbon-regular.ttf
+    - assets/SignPainter-HouseScript.ttf
+
+cupertino_icons: ^0.1.3
 
 flutter_icons:
   android: true

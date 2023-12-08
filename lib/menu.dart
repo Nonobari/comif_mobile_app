@@ -121,7 +121,7 @@ class _MenuScreenState extends State<MenuScreen> {
     if (!prefs.containsKey(cachedDataKey) || isCacheStale(prefs)) {
       // Cache is empty or stale, make the HTTP request
       debugPrint('making request');
-      var url = Uri.http('portail.comif.fr', '/comif/api_mobile/get_menu.php',
+      var url = Uri.https('portail.comif.fr', '/comif/api_mobile/get_menu.php',
           {'home_token': home_token});
       var response = await http.get(url);
 
